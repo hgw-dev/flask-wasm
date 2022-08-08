@@ -1,5 +1,8 @@
 #include <emscripten.h>
 #include <array>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 #include "box.hpp"
 
@@ -245,4 +248,35 @@ int getNumber(int x, int y)
     return board[y][x].number;
 }
 
+// EMSCRIPTEN_KEEPALIVE
+// const char* getColor(int number)
+// {
+//     int log2 = -1;
+//     while (number >>= 1) ++log2;
+ 
+//     std::string colors[10] = { 
+//         // "rgb(222, 229, 24)",
+//         // "rgb(239, 194, 0)",
+//         // "rgb(247, 157, 1)",
+//         // "rgb(246, 121, 36)",
+//         // "rgb(236, 85, 57)",
+//         // "rgb(217, 49, 74)",
+//         // "rgb(191, 9, 87)",
+//         // "rgb(157, 0, 97)",
+//         // "rgb(117, 0, 102)",
+//         // "rgb(71, 9, 100)"
+//     };
+    
+//     if (log2 >= 10){
+//         log2 = 9;
+//     }
+
+//     // std::string str = "rgb(71, 9, 100)";
+//     const std::string* message = *(&colors + log2);
+//     char * cstr = new char [message->length()+1];
+//     std::strcpy (cstr, message->c_str());
+
+//     // return cstr(&colors + log2);
+//     return cstr;
+// }
 }

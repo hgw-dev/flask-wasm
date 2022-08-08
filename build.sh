@@ -1,5 +1,3 @@
-pip3 install -r requirements.txt
-
 rm -rf static
 mkdir -p static/js/wasm
 mkdir -p static/css
@@ -20,6 +18,3 @@ emcc -g --source-map-base \
     -s STANDALONE_WASM \
     src/cpp/2048/box.cpp src/cpp/2048/game_logic.cpp \
     -o static/js/wasm/game_logic.html
-
-cp src/js/* static/js
-cp src/css/* static/css

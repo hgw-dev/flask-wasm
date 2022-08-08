@@ -21,6 +21,7 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/game_logic.wasm'), impo
     var getHeight = results.instance.exports.getHeight;
     var getWidth = results.instance.exports.getWidth;
     var getNumber = results.instance.exports.getNumber;
+    // var getColor = results.instance.exports.getColor;
     var getBoardSize = results.instance.exports.getBoardSize;
     
     function keyDownEvent(e)
@@ -70,8 +71,24 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/game_logic.wasm'), impo
                 var height = getHeight(x, y);
                 var width = getWidth(x, y);
                 var number = getNumber(x, y);
+                // var color = getColor(number);
 
-                ctx.fillStyle = 'rgb(200, 0, 0)';
+                const colors = [
+                    "rgb(222, 229, 24)",
+                    "rgb(239, 194, 0)",
+                    "rgb(247, 157, 1)",
+                    "rgb(246, 121, 36)",
+                    "rgb(236, 85, 57)",
+                    "rgb(217, 49, 74)",
+                    "rgb(191, 9, 87)",
+                    "rgb(157, 0, 97)",
+                    "rgb(117, 0, 102)",
+                    "rgb(71, 9, 100)"
+                ]
+                
+                const idx = Math.min(Math.ceil(Math.log2(number)), 10)
+
+                ctx.fillStyle = colors[idx];
                 ctx.fillRect(xCoord, yCoord, height, width);
     
                 ctx.fillStyle = 'rgb(0, 0, 0)';
