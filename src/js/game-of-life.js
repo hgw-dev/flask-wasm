@@ -1,6 +1,3 @@
-var keyXMove = 0;
-var keyYMove = 0;
-
 var memory = new WebAssembly.Memory({initial:1});
 
 var importObject = {
@@ -14,7 +11,7 @@ var importObject = {
     wasi_snapshot_preview1: {}
 };
 
-WebAssembly.instantiateStreaming(fetch('./static/js/wasm/game.wasm'), importObject)
+WebAssembly.instantiateStreaming(fetch('./static/js/wasm/game-of-life.wasm'), importObject)
 .then((results) =>
 {
     var memory = results.instance.exports.memory;
@@ -109,7 +106,7 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/game.wasm'), importObje
     
         delta += elapsedTime;
     
-        var canvas = document.getElementById('2048-canvas');
+        var canvas = document.getElementById('gol-canvas');
         if (canvas.getContext)
         {
             var ctx = canvas.getContext('2d');
@@ -135,4 +132,5 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/game.wasm'), importObje
     
     window.addEventListener('keydown', keyDownEvent);
     window.requestAnimationFrame(main);
+
 });

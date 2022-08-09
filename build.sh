@@ -2,27 +2,26 @@ rm -rf static
 mkdir -p static/js/wasm
 mkdir -p static/css
 
-export SRC_CPP=src/cpp/app.cpp
-export DEST_JS=static/js/wasm/app.html
+export SRC_CPP="src\/cpp"
+export DEST_JS=static/js/wasm
 export EXPORTED_FUNCTIONS='["_add","_main"]'
 export EXPORTED_RUNTIME_METHODS='cwrap'
 
-# emcc src/cpp/app.cpp -o static/app.js -s EXPORTED_FUNCTIONS='_add' -s EXPORTED_RUNTIME_METHODS='cwrap' -s EXPORT_ES6=1 -s MODULARIZE=1
-# em++ $SRC_CPP -s WASM=1 -o $DEST_JS \
-#     -s EXPORTED_FUNCTIONS=$EXPORTED_FUNCTIONS \
-#     -s EXPORTED_RUNTIME_METHODS=$EXPORTED_RUNTIME_METHODS \
-#     -s EXPORT_ES6=1 \
-#     -s MODULARIZE=1
-emcc -g --source-map-base \
-    -gsource-map --no-entry \
-    -s STANDALONE_WASM \
-    -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
-    src/cpp/2048/box.cpp src/cpp/2048/game.cpp \
-    -o static/js/wasm/game.html
+compile() {
+    sources=$1
+    dest=$2
 
-emcc -g --source-map-base \
-    -gsource-map --no-entry \
-    -s STANDALONE_WASM \
-    -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
-    src/cpp/2048/factorial.cpp \
-    -o static/js/wasm/factorial.html
+    source=$(echo $sources | sed -E "s/([^ ]*)\.cpp/$SRC_CPP\/\1.cpp/g" )
+    target=$DEST_JS/$dest
+
+    emcc -g --source-map-base \
+        -gsource-map --no-entry \
+        -s STANDALONE_WASM \
+        -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+        $source \
+        -o $target
+}
+
+compile "2048/box.cpp 2048/game.cpp" game.html
+compile "factorial.cpp" factorial.html
+# compile "box.cpp game.cpp" game.html
