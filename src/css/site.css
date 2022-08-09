@@ -38,3 +38,9 @@ canvas.emscripten {
     border: 0px none; 
     background-color: black; 
 }
+#result {
+    inline-size: 25vw; 
+    overflow-wrap: break-word;
+    position: absolute;
+    left: 37%;
+}

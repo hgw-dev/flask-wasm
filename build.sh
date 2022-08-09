@@ -17,5 +17,12 @@ emcc -g --source-map-base \
     -gsource-map --no-entry \
     -s STANDALONE_WASM \
     -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
-    src/cpp/2048/box.cpp src/cpp/2048/game_logic.cpp \
-    -o static/js/wasm/game_logic.html
+    src/cpp/2048/box.cpp src/cpp/2048/game.cpp \
+    -o static/js/wasm/game.html
+
+emcc -g --source-map-base \
+    -gsource-map --no-entry \
+    -s STANDALONE_WASM \
+    -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+    src/cpp/2048/factorial.cpp \
+    -o static/js/wasm/factorial.html

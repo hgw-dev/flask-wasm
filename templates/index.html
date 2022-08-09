@@ -5,34 +5,27 @@
     <meta charset="UTF-8">
     <title>Flask wasm</title>
     <link rel="stylesheet" href="./static/css/site.css">
-    <!-- <script src="./static/js/wasm/app.js"></script>
-    <script type="module" src="./static/js/main.js"></script> -->
-</head>
+    <script type="text/javascript" src="./static/js/factorial.js"></script>
+  </head>
 
 <body>
-    <div class="header-image">
+      <div class="header-image">
         <canvas id="canvas" width="400" height="400"></canvas>
-        <script type="text/javascript" src="./static/js/game.js"></script>
-        <!-- <div class="headline">
+        <script type="text/javascript" src="./static/js/2048.js"></script>
+      </div>
+
+      <div class="header-image">
+        <div class="container">
           <div class="container">
-            <h1>One Page Wonder</h1>
-            <h2>Will Knock Your Socks Off</h2>
+            <h1>Factorial</h1>
+            <input id="fact" placeholder="Enter value">
+            <div id="result"><span id="pages"></span></div>
+            <button id="expand">Calculate</button>
           </div>
-        </div> -->
+          
+        </div>
       </div>
-      <div class="container">
-        <div>Japanese: <span id="japanese"></span></div>
-        <div>English: <span id="english"></span></div>
-  
-        <h1>Memory</h1>
-        <div>Your memory instance is <span id="mem"></span> bytes.</div>
-        <div>It has this many pages: <span id="pages"></span>.</div>
-        <div>Uint32Buffer[0] = <span id="firstint"></span>.</div>
-        <div>Uint8Buffer[0-4] = <span id="firstbytes"></span>.</div>
-      </div>
-  
-      <button id="expand">Expand</button>
-  
+          
 
     <!-- <div class="container"> -->
 
