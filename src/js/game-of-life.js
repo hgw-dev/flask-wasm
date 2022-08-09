@@ -11,126 +11,159 @@ var importObject = {
     wasi_snapshot_preview1: {}
 };
 
-WebAssembly.instantiateStreaming(fetch('./static/js/wasm/game-of-life.wasm'), importObject)
-.then((results) =>
-{
-    var memory = results.instance.exports.memory;
-    
-    var isBoxEmpty = results.instance.exports.isBoxEmpty;
-    var update = results.instance.exports.update;
-    var createBox = results.instance.exports.createBox;
-    var getXCoordinate = results.instance.exports.getXCoordinate;
-    var getYCoordinate = results.instance.exports.getYCoordinate;
-    var getHeight = results.instance.exports.getHeight;
-    var getWidth = results.instance.exports.getWidth;
-    var getNumber = results.instance.exports.getNumber;
-    var getColor = results.instance.exports.getColor;
-    var getBoardSize = results.instance.exports.getBoardSize;
-    
-    function keyDownEvent(e)
-    {
-        var code = e.keyCode;
-        
-        keyXMove = 0;
-        keyYMove = 0;
-    
-        if (code === 39) // right
-        {
-            keyXMove = 1;
+class WazzupWasm {
+    constructor(results){
+        this.exports = results.instance.exports
+
+        console.log(Object.keys(this.exports))
+    }
+
+    getExport(fn){
+        if (fn in this.exports){
+            return this.exports[fn]
         }
-        else if (code === 37) // left
-        {
-            keyXMove = -1;
-        }
-        else if (code === 38) // up
-        {
-            keyYMove = -1;
-        }
-        else if (code === 40) // down
-        {
-            keyYMove = 1;
+        console.error(`${fn}: No export found by that name.`)
+    }
+}
+
+class Timer {
+    constructor(fps){
+        this.start = this.now;
+        this.delta = 0;
+
+        this.fps = fps
+        this.frameDuration = 1000/fps
+    }
+    get now(){
+        return Date.now();
+    }
+    get recalculate(){
+        const now = this.now,
+            elapsed = now - this.start;
+            
+        this.start = now;
+        this.delta += elapsed;
+
+        return this.delta;
+    }
+    get isNewFrame(){
+        return this.recalculate >= this.frameDuration;
+    }
+    endFrame(){
+        this.delta -= this.frameDuration;
+    }
+}
+
+let timer = new Timer(fps = 10)
+
+class Movement {
+    constructor(){
+        this.reset()    
+    }
+    reset(){
+        this.xMove = 0;
+        this.yMove = 0;
+    }
+    update(fn){
+        if (fn(this.xMove, this.yMove)){
+            this.reset();
         }
     }
-    
-    createBox(0, 0, 2);
+}
 
-    function draw(canvas, ctx)
-    {
-        ctx.fillStyle = 'rgb(240, 240, 240)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), importObject)
+.then((results) =>
+{
+    const ww = new WazzupWasm(results)
+
+    const memory = ww.getExport('memory'),
+        createCell = ww.getExport('createCell'),
+        isCellEmpty = ww.getExport('isCellEmpty'),
+        getColor = ww.getExport('getColor'),
+        getXCoordinate = ww.getExport('getXCoordinate'),
+        getYCoordinate = ww.getExport('getYCoordinate'),
+        getBoardHeight = ww.getExport('getBoardHeight'),
+        getBoardWidth = ww.getExport('getBoardWidth'),
+        getCellSize = ww.getExport('getCellSize');
+
+    const movement = new Movement()
+
+    createCell(10, 10);
+    // createCell(-10, -10);
+    // createCell(10, -10);
+    createCell(10, 10);
+    createCell(0, 10);
+    // createCell(0, -10);
+    // createCell(-10, 0);
+    createCell(10, 10);
+    createCell(0, 0);
+    const cellSize = getCellSize();
     
-        var boardSize = getBoardSize();
-        for (var x = 0; x < boardSize; x++)
-        {
-            for (var y = 0; y < boardSize; y++)
-            {
-                if (isBoxEmpty(x, y))
-                {
+    function draw(canvas, ctx){
+        ctx.fillStyle = 'rgb(240,240,240)'
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const xSize = getBoardWidth();
+        const ySize = getBoardHeight();
+
+        for (let x = 0; x < xSize; x++) {
+            for (let y = 0; y < ySize; y++){
+                if (isCellEmpty(x, y)){
                     continue;
                 }
 
-                var xCoord = getXCoordinate(x, y);
-                var yCoord = getYCoordinate(x, y);
-                var height = getHeight(x, y);
-                var width = getWidth(x, y);
-                var number = getNumber(x, y);
-                
-                const size = new Int32Array(memory.buffer, 0, 1);
-                const colorAddr = getColor(size.byteOffset, number);
-                const colorArray = new Int8Array(memory.buffer, colorAddr, size[0]);
-                const color = String.fromCharCode.apply(null, colorArray)
+                // console.log(x, y);
 
-                ctx.fillStyle = color;
-                ctx.fillRect(xCoord, yCoord, height, width);
-    
+                // const size = new Int32Array(memory.buffer, 0, 1);
+                // const colorAddr = getColor(size.byteOffset, (x+y)%10);
+                // const colorArray = new Int8Array(memory.buffer, colorAddr, size[0]);
+                // const color = String.fromCharCode.apply(null, colorArray)
+                let xCoord = getXCoordinate(x, y);
+                let yCoord = getYCoordinate(x, y);
+
+                ctx.fillStyle = 'red';
+                ctx.fillRect(xCoord, yCoord, cellSize, cellSize);
+
                 ctx.fillStyle = 'rgb(0, 0, 0)';
                 ctx.font = 'bold 30px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(number, xCoord + (width / 2), yCoord + (height / 2) + 11);
+                ctx.fillText(`(${x}, ${y})`, x*cellSize + (cellSize / 2), y*cellSize + (cellSize / 2) + 11);
             }
         }
     }
-    
-    var fps = 60;
-    var startTime = Date.now();
-    var frameDuration = 1000 / fps;
-    var delta = 0;
-    
-    function main()
-    {
+
+    function main() {
         window.requestAnimationFrame(main);
-    
-        var currentTime = Date.now();
-        var elapsedTime = currentTime - startTime;
-        startTime = currentTime;
-    
-        delta += elapsedTime;
-    
-        var canvas = document.getElementById('gol-canvas');
-        if (canvas.getContext)
-        {
-            var ctx = canvas.getContext('2d');
+            
+        const canvas = document.querySelector('canvas#gol-canvas')
+        if (canvas.getContext){
+            const ctx = canvas.getContext('2d');
+
             ctx.save();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-            while (delta >= frameDuration)
-            {
-                if (update(keyXMove, keyYMove))
-                {
-                    keyXMove = 0;
-                    keyYMove = 0;
-                }
-    
-                delta -= frameDuration;
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+            while (timer.isNewFrame){
+                movement.update(() => true)
+
+                timer.endFrame();
             }
-    
+
             draw(canvas, ctx);
     
             ctx.restore();
         }
     }
-    
-    window.addEventListener('keydown', keyDownEvent);
-    window.requestAnimationFrame(main);
 
+    window.requestAnimationFrame(main);
+    
+    window.addEventListener('keydown', (evt) => {
+        console.log(evt)
+    });
+
+    
+    /*
+    const size = new Int32Array(memory.buffer, 0, 1);
+    const resultAddr = factorial(size.byteOffset, Number(n));
+    const resultArray = new Int32Array(memory.buffer, resultAddr, size[0]);
+    */
 });

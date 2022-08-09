@@ -14,7 +14,7 @@ var importObject = {
     wasi_snapshot_preview1: {}
 };
 
-WebAssembly.instantiateStreaming(fetch('./static/js/wasm/game.wasm'), importObject)
+WebAssembly.instantiateStreaming(fetch('./static/js/wasm/2048/game.wasm'), importObject)
 .then((results) =>
 {
     var memory = results.instance.exports.memory;
