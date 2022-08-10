@@ -8,8 +8,8 @@
 typedef long int i32;
 
 static constexpr int cellSize = 10;
-static constexpr int canvasWidth = 800;
-static constexpr int canvasHeight = 400;
+static constexpr int canvasWidth = 1200;
+static constexpr int canvasHeight = 600;
 
 static constexpr int boardSizeX = canvasWidth / cellSize;
 static constexpr int boardSizeY = canvasHeight / cellSize;

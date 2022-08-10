@@ -2,12 +2,12 @@
 
 rm -rf static
 mkdir -p static/js/wasm
-mkdir -p static/css
+
+cp -R src/js static
+cp -R src/css static
 
 export SRC_CPP="src\/cpp"
 export DEST_JS=static/js/wasm
-export EXPORTED_FUNCTIONS='["_add","_main"]'
-export EXPORTED_RUNTIME_METHODS='cwrap'
 
 compile() {
     sources=$1

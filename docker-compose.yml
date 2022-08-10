@@ -2,5 +2,6 @@ version: '2'
 services:
     app:
         build: .
+        command: python3 view.py
         ports:
             - "5000:5000"
