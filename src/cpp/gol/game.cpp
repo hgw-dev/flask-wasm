@@ -1,11 +1,13 @@
 #include <emscripten.h>
 #include <array>
+#include <stdio.h>
+#include <string.h>
 
 #include "cell.hpp"
 
 typedef long int i32;
 
-static constexpr int cellSize = 50;
+static constexpr int cellSize = 10;
 static constexpr int canvasWidth = 800;
 static constexpr int canvasHeight = 400;
 
@@ -13,22 +15,74 @@ static constexpr int boardSizeX = canvasWidth / cellSize;
 static constexpr int boardSizeY = canvasHeight / cellSize;
 
 static std::array<std::array<Cell, boardSizeX>, boardSizeY> board;
-static int boxesIteratedCount = 0;
-static bool canCreateNewCell = false;
+// static int boxesIteratedCount = 0;
+// static bool canCreateNewCell = false;
+
+extern "C" int str_len(const char* p)
+{
+    return std::strlen(p);
+}
+
+// extern "C" void tostring(int n, char* c)
+// {
+//     *c = std::to_string(n);
+// }
+
+// extern "C" void std_cat(char* a, char* b)
+// {
+//     strcat(a, b);
+// }
+
+// char* getColor() { 
+//     int cA = emscripten_random() % 16;
+//     int cB = emscripten_random() % 16;
+
+
+//     char hex[] = "6A";
+//     int num = (int)strtol(hex, NULL, 16);  
+
+//     char *result = color;
+//     // return result;
+//     // std::ostringstream color;
+//     // color << "rgb(" << std::to_string(r) 
+//     // << "," << std::to_string(g)
+//     // << "," << std::to_string(b) 
+//     // << ")";
+
+//     // const std::string thing= color.str;
+//     // const char *result = color.str().c_str();
+//     // *size = i32(color.size());
+
+//     return result;
+// }
 
 extern "C"
 {
 
 EMSCRIPTEN_KEEPALIVE
-void createCell(int x, int y)
+int getColor(int x, int y)
 {
-    board[y][x] = Cell(x, y, boardSizeX, boardSizeY);
+    return board[y][x].color;
 }
 
 EMSCRIPTEN_KEEPALIVE
 bool isCellEmpty(int x, int y)
 {
     return board[y][x].isValid == false;
+}
+
+bool inBounds(int x, int y)
+{
+    return x >= 0 && x < boardSizeX && y >= 0 && y < boardSizeY;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void createCell(int x, int y)
+{
+    if (inBounds(x, y) && isCellEmpty(x, y)){
+        board[y][x] = Cell(x, y, cellSize);
+        board[y][x].color = (int) (emscripten_random() * 16777215);
+    }
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -59,35 +113,6 @@ EMSCRIPTEN_KEEPALIVE
 int getYCoordinate(int x, int y)
 {
     return board[y][x].y;
-}
-
-EMSCRIPTEN_KEEPALIVE
-const char* getColor(i32* size, int number)
-{
-    int log2 = -1;
-    while (number >>= 1) ++log2;
- 
-    const char* colors[10] = { 
-        "rgb(222, 229, 24)",
-        "rgb(239, 194, 0)",
-        "rgb(247, 157, 1)",
-        "rgb(246, 121, 36)",
-        "rgb(236, 85, 57)",
-        "rgb(217, 49, 74)",
-        "rgb(191, 9, 87)",
-        "rgb(157, 0, 97)",
-        "rgb(117, 0, 102)",
-        "rgb(71, 9, 100)"
-    };
-    
-    if (log2 >= 10){
-        log2 = 9;
-    }
-
-    *size = i32(strlen(colors[log2]));
-    const char* num = colors[log2]; 
-
-    return num;
 }
 
 // EMSCRIPTEN_KEEPALIVE

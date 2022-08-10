@@ -54,7 +54,7 @@ class Timer {
     }
 }
 
-let timer = new Timer(fps = 10)
+let timer = new Timer(fps = 60)
 
 class Movement {
     constructor(){
@@ -71,6 +71,17 @@ class Movement {
     }
 }
 
+const canvas = document.querySelector('canvas#gol-canvas')
+let mouseX, mouseY;
+
+const mouseCoordsInCanvas = (evt) => {
+    const rect = canvas.getBoundingClientRect(),
+        x = evt.clientX - rect.left,
+        y = evt.clientY - rect.top;
+    mouseX = x;
+    mouseY = y;
+}
+
 WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), importObject)
 .then((results) =>
 {
@@ -78,8 +89,8 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), import
 
     const memory = ww.getExport('memory'),
         createCell = ww.getExport('createCell'),
-        isCellEmpty = ww.getExport('isCellEmpty'),
         getColor = ww.getExport('getColor'),
+        isCellEmpty = ww.getExport('isCellEmpty'),
         getXCoordinate = ww.getExport('getXCoordinate'),
         getYCoordinate = ww.getExport('getYCoordinate'),
         getBoardHeight = ww.getExport('getBoardHeight'),
@@ -87,16 +98,16 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), import
         getCellSize = ww.getExport('getCellSize');
 
     const movement = new Movement()
+    
+    const coords = [
+        [10, 10], [20, 20], [25,30],
+        [0, 30], [30, 20], [0, 0]
+    ]
+    coords.forEach(([x, y]) => {
+        console.log(x, y)
+        createCell(x, y);
+    });
 
-    createCell(10, 10);
-    // createCell(-10, -10);
-    // createCell(10, -10);
-    createCell(10, 10);
-    createCell(0, 10);
-    // createCell(0, -10);
-    // createCell(-10, 0);
-    createCell(10, 10);
-    createCell(0, 0);
     const cellSize = getCellSize();
     
     function draw(canvas, ctx){
@@ -112,30 +123,41 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), import
                     continue;
                 }
 
-                // console.log(x, y);
-
-                // const size = new Int32Array(memory.buffer, 0, 1);
-                // const colorAddr = getColor(size.byteOffset, (x+y)%10);
-                // const colorArray = new Int8Array(memory.buffer, colorAddr, size[0]);
-                // const color = String.fromCharCode.apply(null, colorArray)
-                let xCoord = getXCoordinate(x, y);
-                let yCoord = getYCoordinate(x, y);
-
-                ctx.fillStyle = 'red';
+                
+                const xCoord = getXCoordinate(x, y);
+                const yCoord = getYCoordinate(x, y);
+                const color = getColor(x, y);
+                
+                ctx.fillStyle = "#" + color.toString(16);
                 ctx.fillRect(xCoord, yCoord, cellSize, cellSize);
 
-                ctx.fillStyle = 'rgb(0, 0, 0)';
-                ctx.font = 'bold 30px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(`(${x}, ${y})`, x*cellSize + (cellSize / 2), y*cellSize + (cellSize / 2) + 11);
+                ctx.fillStyle = 'purple';
+                ctx.fillRect(mouseX, mouseY, cellSize, cellSize);
+
+                // ctx.fillStyle = 'rgb(0, 0, 0)';
+                // ctx.font = 'bold 30px Arial';
+                // ctx.textAlign = 'center';
+                // ctx.fillText(`(${x}, ${y})`, xCoord + (cellSize / 2), yCoord + (cellSize / 2) + 11);
             }
         }
     }
 
+    let isDown = false;
+    window.addEventListener('mousedown', (evt) => {
+        isDown = true;
+    });
+    window.addEventListener('mouseup', (evt) => {
+        isDown = false;
+    });
+    // });
+    window.addEventListener('mousemove', (evt) => {
+        mouseCoordsInCanvas(evt);
+    // window.addEventListener('click', (evt) => {
+        isDown && createCell(mouseX/cellSize, mouseY/cellSize)
+    });
+
     function main() {
         window.requestAnimationFrame(main);
-            
-        const canvas = document.querySelector('canvas#gol-canvas')
         if (canvas.getContext){
             const ctx = canvas.getContext('2d');
 
@@ -155,11 +177,6 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), import
     }
 
     window.requestAnimationFrame(main);
-    
-    window.addEventListener('keydown', (evt) => {
-        console.log(evt)
-    });
-
     
     /*
     const size = new Int32Array(memory.buffer, 0, 1);

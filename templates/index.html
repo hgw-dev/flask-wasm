@@ -5,14 +5,16 @@
     <meta charset="UTF-8">
     <title>Flask wasm</title>
     <link rel="stylesheet" href="./static/css/site.css">
-    <script type="text/javascript" src="./static/js/factorial.js"></script>
+    <!-- <script type="text/javascript" src="./static/js/factorial.js"></script> -->
   </head>
 
 <body>
+  <button id="start">Start simulation</button>
     <div class="header-image">
       <canvas id="gol-canvas" width="800" height="400"></canvas>
       <script type="text/javascript" src="./static/js/game-of-life.js"></script>
     </div>
+  <span id="mouse"></span> 
 <!-- 
       <div class="header-image">
         <canvas id="2048-canvas" width="400" height="400"></canvas>

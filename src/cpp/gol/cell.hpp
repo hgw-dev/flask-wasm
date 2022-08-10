@@ -13,13 +13,12 @@ class Cell
         int yGridNext = 0;
         int xNext = 0;
         int yNext = 0;
-
+        int cellSize = 0;
         bool isValid = false;
-        int boardScaleX = 0;
-        int boardScaleY = 0;
+        int color = 0;
 
         Cell() = default;
-        Cell(int x, int y, int boardScaleX, int boardScaleY);
+        Cell(int x, int y, int cellSize);
         
         void update();
         void setLocation(int newX, int newY);

@@ -1,20 +1,19 @@
 #include "cell.hpp"
 
-Cell::Cell(int x, int y, int boardScaleX, int boardScaleY) : 
+Cell::Cell(int x, int y, int cellSize) : 
     xGrid(x), yGrid(y), 
     xGridNext(x), yGridNext(y),
-    x(boardScaleX * x), y(boardScaleY * y), 
-    xNext(boardScaleX * x), yNext(boardScaleY * y),
+    x(cellSize * x), y(cellSize * y), 
+    xNext(cellSize * x), yNext(cellSize * y),
+    cellSize(cellSize),
     isValid(true)
 {
-
 }
-
 
 void Cell::setLocation(int newX, int newY)
 {
     xGridNext = newX;
     yGridNext = newY;
-    xNext = boardScaleX * newX;
-    yNext = boardScaleY * newY;
+    xNext = cellSize * newX;
+    yNext = cellSize * newY;
 }

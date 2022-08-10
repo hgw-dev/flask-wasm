@@ -23,14 +23,17 @@ compile() {
         fi
     fi
 
+        # -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+        # -Wall \
+    
+        # -s SIDE_MODULE=0 \ 
     emcc -g --source-map-base \
         -gsource-map --no-entry \
         -s STANDALONE_WASM \
-        -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
         $source \
         -o $target
 }
 
-compile "2048/box.cpp 2048/game.cpp" 2048/game.html
-compile "factorial.cpp" factorial.html
+# compile "2048/box.cpp 2048/game.cpp" 2048/game.html
+# compile "factorial.cpp" factorial.html
 compile "gol/cell.cpp gol/game.cpp" gol/game.html
