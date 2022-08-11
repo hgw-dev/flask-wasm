@@ -6,7 +6,7 @@ Cell::Cell(int x, int y, int cellSize) :
     x(cellSize * x), y(cellSize * y), 
     xNext(cellSize * x), yNext(cellSize * y),
     cellSize(cellSize),
-    isValid(true)
+    isValid(true), isAlive(true)
 {
 }
 

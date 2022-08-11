@@ -11,6 +11,14 @@ var importObject = {
     wasi_snapshot_preview1: {}
 };
 
+WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), importObject)
+.then((results) =>
+{   
+    
+const canvas = document.querySelector('canvas#gol-canvas')
+
+let mouseX, mouseY;
+
 class WazzupWasm {
     constructor(results){
         this.exports = results.instance.exports
@@ -27,15 +35,14 @@ class WazzupWasm {
 }
 
 class Timer {
-    constructor(fps){
+    constructor(){
         this.start = this.now;
         this.delta = 0;
 
-        this.fps = fps
-        this.frameDuration = 1000/fps
+        this.frameDuration = 1000
     }
     get now(){
-        return Date.now();
+        return performance.now();
     }
     get recalculate(){
         const now = this.now,
@@ -54,8 +61,6 @@ class Timer {
     }
 }
 
-let timer = new Timer(fps = 60)
-
 class Movement {
     constructor(){
         this.reset()    
@@ -71,93 +76,105 @@ class Movement {
     }
 }
 
-const canvas = document.querySelector('canvas#gol-canvas')
-let mouseX, mouseY;
+const ww = new WazzupWasm(results),
+    timer = new Timer(),
+    movement = new Movement();
 
-const mouseCoordsInCanvas = (evt) => {
-    const rect = canvas.getBoundingClientRect(),
-        x = evt.clientX - rect.left,
-        y = evt.clientY - rect.top;
-    mouseX = x;
-    mouseY = y;
-}
+const memory = ww.getExport('memory'),
+    createCell = ww.getExport('createCell'),
+    deleteCell = ww.getExport('deleteCell'),
+    getColor = ww.getExport('getColor'),
+    isCellEmpty = ww.getExport('isCellEmpty'),
+    isCellAlive = ww.getExport('isCellAlive'),
+    neighborAliveCount = ww.getExport('neighborAliveCount'),
+    getXCoordinate = ww.getExport('getXCoordinate'),
+    willCellBeAlive = ww.getExport('willCellBeAlive'),
+    getYCoordinate = ww.getExport('getYCoordinate'),
+    getBoardHeight = ww.getExport('getBoardHeight'),
+    getBoardWidth = ww.getExport('getBoardWidth'),
+    getCellSize = ww.getExport('getCellSize'),
+    step = ww.getExport('step');
 
-WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), importObject)
-.then((results) =>
-{
-    const ww = new WazzupWasm(results)
+const cellSize = getCellSize();
 
-    const memory = ww.getExport('memory'),
-        createCell = ww.getExport('createCell'),
-        getColor = ww.getExport('getColor'),
-        isCellEmpty = ww.getExport('isCellEmpty'),
-        getXCoordinate = ww.getExport('getXCoordinate'),
-        getYCoordinate = ww.getExport('getYCoordinate'),
-        getBoardHeight = ww.getExport('getBoardHeight'),
-        getBoardWidth = ww.getExport('getBoardWidth'),
-        getCellSize = ww.getExport('getCellSize');
-
-    const movement = new Movement()
-    
-    const coords = [
-        [10, 10], [20, 20], [25,30],
-        [0, 30], [30, 20], [0, 0]
-    ]
-    coords.forEach(([x, y]) => {
-        console.log(x, y)
+class Listeners {
+    static setPosition(evt){
+        const rect = canvas.getBoundingClientRect(),
+            x = evt.clientX - rect.left,
+            y = evt.clientY - rect.top;
+        mouseX = x;
+        mouseY = y;
+    }
+    static rClick(x, y){
+        deleteCell(x, y);
+    }
+    static lClick(x, y){
         createCell(x, y);
-    });
+    }
+    static clickCell(lIsDown, rIsDown, evt){
+        Listeners.setPosition(evt);
 
-    const cellSize = getCellSize();
-    
-    function draw(canvas, ctx){
-        ctx.fillStyle = 'rgb(240,240,240)'
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const xSize = getBoardWidth();
-        const ySize = getBoardHeight();
-
-        for (let x = 0; x < xSize; x++) {
-            for (let y = 0; y < ySize; y++){
-                if (isCellEmpty(x, y)){
-                    continue;
-                }
-
-                
-                const xCoord = getXCoordinate(x, y);
-                const yCoord = getYCoordinate(x, y);
-                const color = getColor(x, y);
-                
-                ctx.fillStyle = "#" + color.toString(16);
-                ctx.fillRect(xCoord, yCoord, cellSize, cellSize);
-
-                ctx.fillStyle = 'purple';
-                ctx.fillRect(mouseX, mouseY, cellSize, cellSize);
-
-                // ctx.fillStyle = 'rgb(0, 0, 0)';
-                // ctx.font = 'bold 30px Arial';
-                // ctx.textAlign = 'center';
-                // ctx.fillText(`(${x}, ${y})`, xCoord + (cellSize / 2), yCoord + (cellSize / 2) + 11);
-            }
+        if (lIsDown){
+            Listeners.lClick(mouseX/cellSize, mouseY/cellSize)
+        } else if (rIsDown) {
+            Listeners.rClick(mouseX/cellSize, mouseY/cellSize)
         }
     }
+    static mouse() {
+        let lIsDown = false,
+            rIsDown = false;
+        window.addEventListener('mousedown', (evt) => {
+            if (evt.button === 2){
+                rIsDown = true;
+            } else {
+                lIsDown = true;
+            }
+            Listeners.clickCell(lIsDown, rIsDown, evt);
+        });
+        window.addEventListener('mouseup', (evt) => {
+            rIsDown = false;
+            lIsDown = false;
+        });
+        window.addEventListener('mousemove', (evt) => {
+            Listeners.clickCell(lIsDown, rIsDown, evt)
+        });
 
-    let isDown = false;
-    window.addEventListener('mousedown', (evt) => {
-        isDown = true;
-    });
-    window.addEventListener('mouseup', (evt) => {
-        isDown = false;
-    });
-    // });
-    window.addEventListener('mousemove', (evt) => {
-        mouseCoordsInCanvas(evt);
-    // window.addEventListener('click', (evt) => {
-        isDown && createCell(mouseX/cellSize, mouseY/cellSize)
-    });
+    }
+    static step() {
+        const stepBtn = document.querySelector('button#step');
 
-    function main() {
-        window.requestAnimationFrame(main);
+        stepBtn.addEventListener('click', () => {
+            // console.log("===========");
+            for (let i = 0; i < getBoardHeight(); i++){
+                for (let j = 0; j < getBoardWidth(); j++){
+                    console.log(j, i, isCellAlive(j, i), neighborAliveCount(j, i), willCellBeAlive(j, i));
+                }
+            }
+            for (let i = 0; i < getBoardHeight(); i++){
+                let a = ''
+                for (let j = 0; j < getBoardWidth(); j++){
+                    // console.log(j, i, willCellBeAlive(j, i));
+                    if (willCellBeAlive(j, i)){
+                        a += '+'    
+                    } else {
+                        a += '.'
+                    }
+                }
+                console.log(a);
+            }
+            const turn = step();
+            // console.log(turn)
+        })
+    }
+    static initialize() {
+        Listeners.step();
+        Listeners.mouse();
+    }
+}
+
+class Canvas {
+    static initialize() {
+        window.requestAnimationFrame(() => Canvas.initialize());
         if (canvas.getContext){
             const ctx = canvas.getContext('2d');
 
@@ -166,21 +183,57 @@ WebAssembly.instantiateStreaming(fetch('./static/js/wasm/gol/game.wasm'), import
 
             while (timer.isNewFrame){
                 movement.update(() => true)
-
                 timer.endFrame();
             }
 
-            draw(canvas, ctx);
-    
+            Canvas.draw(canvas, ctx);
+
             ctx.restore();
         }
     }
-
-    window.requestAnimationFrame(main);
     
-    /*
-    const size = new Int32Array(memory.buffer, 0, 1);
-    const resultAddr = factorial(size.byteOffset, Number(n));
-    const resultArray = new Int32Array(memory.buffer, resultAddr, size[0]);
-    */
+    static draw(canvas, ctx){
+        ctx.fillStyle = 'rgb(240,240,240)'
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const xSize = getBoardWidth();
+        const ySize = getBoardHeight();
+
+        for (let x = 0; x < xSize; x++) {
+            for (let y = 0; y < ySize; y++){
+                if (isCellEmpty(x, y) || !isCellAlive(x, y)){
+                    continue;
+                }
+                
+                const xCoord = getXCoordinate(x, y);
+                const yCoord = getYCoordinate(x, y);
+                const color = getColor(x, y);
+
+                ctx.fillStyle = "#" + color.toString(16);
+                ctx.fillRect(xCoord, yCoord, cellSize, cellSize);
+                
+                ctx.fillStyle = 'purple';
+                ctx.fillRect(mouseX, mouseY, cellSize, cellSize);
+            }
+        }
+    }
+}
+
+// const coords = [
+//     [10, 10], [20, 20], [25,30],
+//     [0, 30], [30, 20], [0, 0]
+// ]
+// coords.forEach(([x, y]) => {
+//     createCell(x, y);
+// });
+canvas.setAttribute("width",getBoardWidth()*cellSize)
+canvas.setAttribute("height",getBoardHeight()*cellSize)
+canvas.oncontextmenu=() => false;
+window.requestAnimationFrame(() => Canvas.initialize());
+Listeners.initialize();
+/*
+const size = new Int32Array(memory.buffer, 0, 1);
+const resultAddr = factorial(size.byteOffset, Number(n));
+const resultArray = new Int32Array(memory.buffer, resultAddr, size[0]);
+*/
 });

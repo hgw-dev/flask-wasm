@@ -15,6 +15,8 @@ class Cell
         int yNext = 0;
         int cellSize = 0;
         bool isValid = false;
+        bool isAlive = false;
+        bool willBeAlive = false;
         int color = 0;
 
         Cell() = default;
