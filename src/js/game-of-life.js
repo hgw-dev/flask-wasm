@@ -86,9 +86,7 @@ const memory = ww.getExport('memory'),
     getColor = ww.getExport('getColor'),
     isCellEmpty = ww.getExport('isCellEmpty'),
     isCellAlive = ww.getExport('isCellAlive'),
-    neighborAliveCount = ww.getExport('neighborAliveCount'),
     getXCoordinate = ww.getExport('getXCoordinate'),
-    willCellBeAlive = ww.getExport('willCellBeAlive'),
     getYCoordinate = ww.getExport('getYCoordinate'),
     getBoardHeight = ww.getExport('getBoardHeight'),
     getBoardWidth = ww.getExport('getBoardWidth'),
@@ -106,10 +104,10 @@ class Listeners {
         mouseY = y;
     }
     static rClick(x, y){
-        deleteCell(x, y);
+        deleteCell(Math.floor(x), Math.floor(y));
     }
     static lClick(x, y){
-        createCell(x, y);
+        createCell(Math.floor(x), Math.floor(y));
     }
     static clickCell(lIsDown, rIsDown, evt){
         Listeners.setPosition(evt);
@@ -144,26 +142,7 @@ class Listeners {
         const stepBtn = document.querySelector('button#step');
 
         stepBtn.addEventListener('click', () => {
-            // console.log("===========");
-            for (let i = 0; i < getBoardHeight(); i++){
-                for (let j = 0; j < getBoardWidth(); j++){
-                    console.log(j, i, isCellAlive(j, i), neighborAliveCount(j, i), willCellBeAlive(j, i));
-                }
-            }
-            for (let i = 0; i < getBoardHeight(); i++){
-                let a = ''
-                for (let j = 0; j < getBoardWidth(); j++){
-                    // console.log(j, i, willCellBeAlive(j, i));
-                    if (willCellBeAlive(j, i)){
-                        a += '+'    
-                    } else {
-                        a += '.'
-                    }
-                }
-                console.log(a);
-            }
-            const turn = step();
-            // console.log(turn)
+            step();
         })
     }
     static initialize() {
@@ -196,12 +175,9 @@ class Canvas {
         ctx.fillStyle = 'rgb(240,240,240)'
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const xSize = getBoardWidth();
-        const ySize = getBoardHeight();
-
-        for (let x = 0; x < xSize; x++) {
-            for (let y = 0; y < ySize; y++){
-                if (isCellEmpty(x, y) || !isCellAlive(x, y)){
+        for (let y = 0; y < getBoardHeight(); y++){
+            for (let x = 0; x < getBoardWidth(); x++) {
+                if (!isCellAlive(x, y)){
                     continue;
                 }
                 
@@ -219,21 +195,9 @@ class Canvas {
     }
 }
 
-// const coords = [
-//     [10, 10], [20, 20], [25,30],
-//     [0, 30], [30, 20], [0, 0]
-// ]
-// coords.forEach(([x, y]) => {
-//     createCell(x, y);
-// });
 canvas.setAttribute("width",getBoardWidth()*cellSize)
 canvas.setAttribute("height",getBoardHeight()*cellSize)
 canvas.oncontextmenu=() => false;
 window.requestAnimationFrame(() => Canvas.initialize());
 Listeners.initialize();
-/*
-const size = new Int32Array(memory.buffer, 0, 1);
-const resultAddr = factorial(size.byteOffset, Number(n));
-const resultArray = new Int32Array(memory.buffer, resultAddr, size[0]);
-*/
 });

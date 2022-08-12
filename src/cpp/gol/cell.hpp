@@ -9,10 +9,6 @@ class Cell
         int y = 0;
         int xGrid = 0;
         int yGrid = 0;
-        int xGridNext = 0;
-        int yGridNext = 0;
-        int xNext = 0;
-        int yNext = 0;
         int cellSize = 0;
         bool isValid = false;
         bool isAlive = false;
@@ -21,9 +17,6 @@ class Cell
 
         Cell() = default;
         Cell(int x, int y, int cellSize);
-        
-        void update();
-        void setLocation(int newX, int newY);
 };
 
 
