@@ -23,7 +23,7 @@ class WazzupWasm {
     constructor(results){
         this.exports = results.instance.exports
 
-        console.log(Object.keys(this.exports))
+        // console.log(Object.keys(this.exports))
     }
 
     getExport(fn){
@@ -84,6 +84,7 @@ const memory = ww.getExport('memory'),
     createCell = ww.getExport('createCell'),
     deleteCell = ww.getExport('deleteCell'),
     getColor = ww.getExport('getColor'),
+    inBounds = ww.getExport('inBounds'),
     isCellEmpty = ww.getExport('isCellEmpty'),
     isCellAlive = ww.getExport('isCellAlive'),
     getXCoordinate = ww.getExport('getXCoordinate'),
@@ -93,29 +94,42 @@ const memory = ww.getExport('memory'),
     getCellSize = ww.getExport('getCellSize'),
     step = ww.getExport('step');
 
-const cellSize = getCellSize();
+    const cellSize = getCellSize();
+let highlightedCellX, highlightedCellY;
 
 class Listeners {
     static setPosition(evt){
         const rect = canvas.getBoundingClientRect(),
-            x = evt.clientX - rect.left,
-            y = evt.clientY - rect.top;
+            x = Number(evt.clientX) - Number(rect.left),
+            y = Number(evt.clientY) - Number(rect.top);
         mouseX = x;
         mouseY = y;
+
+        // const mouse = document.querySelector('span#mouse')
+        // mouse.textContent = `(${mouseX}, ${mouseY})`
+
+        // const cell = document.querySelector('span#cell')
+        // cell.textContent = `(${Math.floor(mouseX/cellSize)}, ${Math.floor(mouseY/cellSize)})`
     }
     static rClick(x, y){
-        deleteCell(Math.floor(x), Math.floor(y));
+        deleteCell(x, y);
     }
     static lClick(x, y){
-        createCell(Math.floor(x), Math.floor(y));
+        if (inBounds(x, y)){
+            // if (x >= 0 && y >= 0 && inBounds(x, y)){
+            // console.log(x, y)
+            if (!isCellAlive(x, y)){
+                createCell(x, y);
+            }
+        }
     }
     static clickCell(lIsDown, rIsDown, evt){
         Listeners.setPosition(evt);
 
         if (lIsDown){
-            Listeners.lClick(mouseX/cellSize, mouseY/cellSize)
+            Listeners.lClick(Math.floor(mouseX/cellSize), Math.floor(mouseY/cellSize))
         } else if (rIsDown) {
-            Listeners.rClick(mouseX/cellSize, mouseY/cellSize)
+            Listeners.rClick(Math.floor(mouseX/cellSize), Math.floor(mouseY/cellSize))
         }
     }
     static mouse() {
@@ -177,19 +191,39 @@ class Canvas {
 
         for (let y = 0; y < getBoardHeight(); y++){
             for (let x = 0; x < getBoardWidth(); x++) {
-                if (!isCellAlive(x, y)){
+                const xCoord = getXCoordinate(x, y);
+                const yCoord = getYCoordinate(x, y);
+
+                // initializes an empty field
+                if (isCellEmpty(x, y)){
+                    createCell(x, y);
+                    deleteCell(x, y);
+                }
+                if (Math.floor(mouseX/cellSize) == x && Math.floor(mouseY/cellSize) == y){
+                    ctx.fillStyle = 'black';
+                    ctx.strokeRect(xCoord, yCoord, cellSize, cellSize);
+                }
+
+                if (!isCellAlive(x, y)){    
                     continue;
                 }
                 
-                const xCoord = getXCoordinate(x, y);
-                const yCoord = getYCoordinate(x, y);
-                const color = getColor(x, y);
-
-                ctx.fillStyle = "#" + color.toString(16);
+                // const color = getColor(x, y);
+                // ctx.fillStyle = "#" + color.toString(16);
+                ctx.fillStyle = 'gray'
                 ctx.fillRect(xCoord, yCoord, cellSize, cellSize);
+
+                ctx.fillStyle = 'black'
+                ctx.strokeRect(xCoord, yCoord, cellSize, cellSize);
+
+                // ctx.fillStyle = 'orange'
+                // ctx.fillText(`(${isCellAlive(x, y)})`, xCoord+cellSize/4, yCoord+cellSize/4)
                 
-                ctx.fillStyle = 'purple';
-                ctx.fillRect(mouseX, mouseY, cellSize, cellSize);
+                // ctx.fillStyle = 'white'
+                // ctx.fillText(`(${xCoord/cellSize}, ${yCoord/cellSize})`, xCoord+cellSize/4, yCoord+cellSize*3/4)
+                
+                // ctx.fillStyle = 'black';
+                // ctx.strokeRect(Math.floor(mouseX), Math.floor(mouseY), cellSize, cellSize);
             }
         }
     }

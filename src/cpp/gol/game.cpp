@@ -8,8 +8,8 @@
 typedef long int i32;
 
 static int turn = 0;
-static constexpr int cellSize = 20;
-static constexpr int canvasWidth = 300;
+static constexpr int cellSize = 30;
+static constexpr int canvasWidth = 1710;
 static constexpr int canvasHeight = 300;
 // static constexpr int canvasWidth = 1200;
 // static constexpr int canvasHeight = 600;
@@ -49,13 +49,12 @@ EMSCRIPTEN_KEEPALIVE
 void createCell(int x, int y)
 {
     if (inBounds(x, y)){
-        // if (isCellEmpty(x, y)){
-        if (!isCellAlive(x, y)){
+        if (isCellEmpty(x, y)){
             board[y][x] = Cell(x, y, cellSize);
             board[y][x].color = 255;
             // board[y][x].color = (int) (emscripten_random() * 16777215);
-        // } else if (!isCellAlive(x, y)){
-        //     board[y][x].isAlive = true;
+        } else {
+            board[y][x].isAlive = true;
         }
     }
 }
@@ -82,22 +81,19 @@ int neighborAliveCount(int x, int y)
             int offX = 0;
             int offY = 0;
 
-            if (inBounds(x+j,y+i)){
-                // if (x+j >= boardSizeX){
-                //     offX = -boardSizeX;
-                // } else if (x+j < 0){
-                //     offX = boardSizeX;
-                // }
-                // if (y+i >= boardSizeY){
-                //     offY = -boardSizeY;
-                // } else if (y+i < 0){
-                //     offY = boardSizeY;
-                // }
-                // if (!isCellEmpty(x+j, y+i)){
-                if (isCellAlive(x+j, y+i)){
-                    count++;
-                }
-                // }
+            if (x+j >= boardSizeX){
+                offX = -boardSizeX;
+            } else if (x+j < 0){
+                offX = boardSizeX;
+            }
+            if (y+i >= boardSizeY){
+                offY = -boardSizeY;
+            } else if (y+i < 0){
+                offY = boardSizeY;
+            }
+
+            if (isCellAlive(x+j+offX, y+i+offY)){
+                count++;
             }
         }
     }
@@ -128,13 +124,13 @@ int step()
     }
     for (int i = 0; i < boardSizeY; i++){
         for (int j = 0; j < boardSizeX; j++){
-            if (isCellEmpty(j, i) && board[i][j].willBeAlive){
+            board[i][j].isAlive = board[i][j].willBeAlive;
+            if (board[i][j].willBeAlive){
                 createCell(j, i);
             }
-            if (!isCellEmpty(j, i) && !board[i][j].willBeAlive){
+            if (!board[i][j].willBeAlive){
                 deleteCell(j, i);
             }
-            board[i][j].isAlive = board[i][j].willBeAlive;
         }
     }
 
