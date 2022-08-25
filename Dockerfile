@@ -6,8 +6,8 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
 COPY src src
-COPY build.sh .
-RUN ./build.sh
-
 COPY templates templates
+
+COPY build.sh .
 COPY view.py .
+COPY entrypoint.sh .

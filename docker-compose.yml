@@ -2,6 +2,6 @@ version: '2'
 services:
     app:
         build: .
-        command: python3 view.py
+        command: bash entrypoint.sh
         ports:
             - "5000:5000"
