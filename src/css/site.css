@@ -34,9 +34,15 @@ div.emscripten_border {
     border: 1px solid black; 
 }
 /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
-canvas.emscripten { 
+canvas#gol-canvas { 
     border: 0px none; 
     background-color: black; 
+}
+body {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }
 #result {
     inline-size: 25vw; 

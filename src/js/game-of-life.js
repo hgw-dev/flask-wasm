@@ -120,6 +120,8 @@ class Listeners {
             // console.log(x, y)
             if (!isCellAlive(x, y)){
                 createCell(x, y);
+            } else {
+                deleteCell(x, y);
             }
         }
     }
@@ -153,14 +155,30 @@ class Listeners {
 
     }
     static step() {
-        const stepBtn = document.querySelector('button#step');
-
-        stepBtn.addEventListener('click', () => {
+        document.querySelector('button#step')
+            .addEventListener('click', () => {
+                step();
+            })
+    }
+    static stepIfSimEnabled(){
+        if (document.querySelector('button#sim').hasAttribute('enabled')){
             step();
-        })
+        }
+    }
+    static sim() {
+        document.querySelector('button#sim')
+            .addEventListener('click', ({target}) => { 
+                target.toggleAttribute('enabled')
+                if (target.hasAttribute('enabled')){
+                    target.textContent = 'Stop simulation'
+                } else {
+                    target.textContent = 'Start simulation'
+                }
+            })
     }
     static initialize() {
         Listeners.step();
+        Listeners.sim()
         Listeners.mouse();
     }
 }
@@ -177,6 +195,7 @@ class Canvas {
             while (timer.isNewFrame){
                 movement.update(() => true)
                 timer.endFrame();
+                Listeners.stepIfSimEnabled()
             }
 
             Canvas.draw(canvas, ctx);
@@ -231,7 +250,7 @@ class Canvas {
 
 canvas.setAttribute("width",getBoardWidth()*cellSize)
 canvas.setAttribute("height",getBoardHeight()*cellSize)
-canvas.oncontextmenu=() => false;
+canvas.oncontextmenu= () => false;
 window.requestAnimationFrame(() => Canvas.initialize());
 Listeners.initialize();
 });
