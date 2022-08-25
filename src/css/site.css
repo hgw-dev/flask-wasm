@@ -50,3 +50,12 @@ body {
     position: absolute;
     left: 37%;
 }
+button#sim[enabled]::after{
+    content: 'Stop simulation'
+}
+button#sim:not([enabled])::after{
+    content: 'Start simulation'
+}
+button#step::after{
+    content: 'Next Step'
+}

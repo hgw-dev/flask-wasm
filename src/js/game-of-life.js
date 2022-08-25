@@ -94,7 +94,9 @@ const memory = ww.getExport('memory'),
     getCellSize = ww.getExport('getCellSize'),
     step = ww.getExport('step');
 
-    const cellSize = getCellSize();
+const cellSize = getCellSize();
+console.log("filling board")
+
 let highlightedCellX, highlightedCellY;
 
 class Listeners {
@@ -105,11 +107,11 @@ class Listeners {
         mouseX = x;
         mouseY = y;
 
-        // const mouse = document.querySelector('span#mouse')
-        // mouse.textContent = `(${mouseX}, ${mouseY})`
+        const mouse = document.querySelector('span#mouse')
+        mouse.textContent = `(${mouseX}, ${mouseY})`
 
-        // const cell = document.querySelector('span#cell')
-        // cell.textContent = `(${Math.floor(mouseX/cellSize)}, ${Math.floor(mouseY/cellSize)})`
+        const cell = document.querySelector('span#cell')
+        cell.textContent = `(${Math.floor(mouseX/cellSize)}, ${Math.floor(mouseY/cellSize)})`
     }
     static rClick(x, y){
         deleteCell(x, y);
@@ -169,11 +171,6 @@ class Listeners {
         document.querySelector('button#sim')
             .addEventListener('click', ({target}) => { 
                 target.toggleAttribute('enabled')
-                if (target.hasAttribute('enabled')){
-                    target.textContent = 'Stop simulation'
-                } else {
-                    target.textContent = 'Start simulation'
-                }
             })
     }
     static initialize() {
@@ -210,14 +207,13 @@ class Canvas {
 
         for (let y = 0; y < getBoardHeight(); y++){
             for (let x = 0; x < getBoardWidth(); x++) {
-                const xCoord = getXCoordinate(x, y);
-                const yCoord = getYCoordinate(x, y);
-
                 // initializes an empty field
                 if (isCellEmpty(x, y)){
                     createCell(x, y);
                     deleteCell(x, y);
                 }
+                const xCoord = getXCoordinate(x, y);
+                const yCoord = getYCoordinate(x, y);
                 if (Math.floor(mouseX/cellSize) == x && Math.floor(mouseY/cellSize) == y){
                     ctx.fillStyle = 'black';
                     ctx.strokeRect(xCoord, yCoord, cellSize, cellSize);
