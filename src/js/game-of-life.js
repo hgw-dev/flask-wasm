@@ -19,7 +19,7 @@ const canvas = document.querySelector('canvas#gol-canvas')
 
 let mouseX, mouseY;
 
-class WazzupWasm {
+class WasmInterface {
     constructor(results){
         this.exports = results.instance.exports
 
@@ -39,7 +39,21 @@ class Timer {
         this.start = this.now;
         this.delta = 0;
 
-        this.frameDuration = 1000
+        this.setSpeed(0)
+    }
+    setSpeed(x){
+        // 1 >= (current speed + 1) < 10
+        let speed = x % 10;
+        speed = speed === 0 ? 1 : speed;
+
+        this.speed = speed;
+        this.frameDuration = 1000 / this.speed;
+
+        document.querySelector('button#speedup')
+            .setAttribute('level', Number(this.speed))
+    }
+    incrementSpeed(){
+        this.setSpeed(this.speed + 1);
     }
     get now(){
         return performance.now();
@@ -76,28 +90,25 @@ class Movement {
     }
 }
 
-const ww = new WazzupWasm(results),
+const wi = new WasmInterface(results),
     timer = new Timer(),
     movement = new Movement();
 
-const memory = ww.getExport('memory'),
-    createCell = ww.getExport('createCell'),
-    deleteCell = ww.getExport('deleteCell'),
-    getColor = ww.getExport('getColor'),
-    inBounds = ww.getExport('inBounds'),
-    isCellEmpty = ww.getExport('isCellEmpty'),
-    isCellAlive = ww.getExport('isCellAlive'),
-    getXCoordinate = ww.getExport('getXCoordinate'),
-    getYCoordinate = ww.getExport('getYCoordinate'),
-    getBoardHeight = ww.getExport('getBoardHeight'),
-    getBoardWidth = ww.getExport('getBoardWidth'),
-    getCellSize = ww.getExport('getCellSize'),
-    step = ww.getExport('step');
+const memory = wi.getExport('memory'),
+    createCell = wi.getExport('createCell'),
+    deleteCell = wi.getExport('deleteCell'),
+    getColor = wi.getExport('getColor'),
+    inBounds = wi.getExport('inBounds'),
+    isCellEmpty = wi.getExport('isCellEmpty'),
+    isCellAlive = wi.getExport('isCellAlive'),
+    getXCoordinate = wi.getExport('getXCoordinate'),
+    getYCoordinate = wi.getExport('getYCoordinate'),
+    getBoardHeight = wi.getExport('getBoardHeight'),
+    getBoardWidth = wi.getExport('getBoardWidth'),
+    getCellSize = wi.getExport('getCellSize'),
+    step = wi.getExport('step');
 
 const cellSize = getCellSize();
-console.log("filling board")
-
-let highlightedCellX, highlightedCellY;
 
 class Listeners {
     static setPosition(evt){
@@ -118,8 +129,6 @@ class Listeners {
     }
     static lClick(x, y){
         if (inBounds(x, y)){
-            // if (x >= 0 && y >= 0 && inBounds(x, y)){
-            // console.log(x, y)
             if (!isCellAlive(x, y)){
                 createCell(x, y);
             } else {
@@ -173,9 +182,14 @@ class Listeners {
                 target.toggleAttribute('enabled')
             })
     }
+    static speedUp() {
+        document.querySelector('button#speedup')
+            .addEventListener('click', () => timer.incrementSpeed());
+    }
     static initialize() {
         Listeners.step();
         Listeners.sim()
+        Listeners.speedUp()
         Listeners.mouse();
     }
 }
@@ -212,33 +226,29 @@ class Canvas {
                     createCell(x, y);
                     deleteCell(x, y);
                 }
+                
                 const xCoord = getXCoordinate(x, y);
                 const yCoord = getYCoordinate(x, y);
+
+                if (isCellAlive(x, y)){    
+                    // const color = getColor(x, y);
+                    // ctx.fillStyle = "#" + color.toString(16);
+                    ctx.fillStyle = 'gray'
+                    ctx.fillRect(xCoord, yCoord, cellSize, cellSize);
+                }
+                
                 if (Math.floor(mouseX/cellSize) == x && Math.floor(mouseY/cellSize) == y){
-                    ctx.fillStyle = 'black';
-                    ctx.strokeRect(xCoord, yCoord, cellSize, cellSize);
+                    ctx.strokeStyle = 'blue';
+                    ctx.shadowColor = 'blue';
+                    ctx.shadowBlur = 10;
+                    ctx.lineWidth = 5;
+                } else {
+                    ctx.strokeStyle = 'black'
+                    ctx.shadowColor = null;
+                    ctx.shadowBlur = null;
+                    ctx.lineWidth = 1;    
                 }
-
-                if (!isCellAlive(x, y)){    
-                    continue;
-                }
-                
-                // const color = getColor(x, y);
-                // ctx.fillStyle = "#" + color.toString(16);
-                ctx.fillStyle = 'gray'
-                ctx.fillRect(xCoord, yCoord, cellSize, cellSize);
-
-                ctx.fillStyle = 'black'
                 ctx.strokeRect(xCoord, yCoord, cellSize, cellSize);
-
-                // ctx.fillStyle = 'orange'
-                // ctx.fillText(`(${isCellAlive(x, y)})`, xCoord+cellSize/4, yCoord+cellSize/4)
-                
-                // ctx.fillStyle = 'white'
-                // ctx.fillText(`(${xCoord/cellSize}, ${yCoord/cellSize})`, xCoord+cellSize/4, yCoord+cellSize*3/4)
-                
-                // ctx.fillStyle = 'black';
-                // ctx.strokeRect(Math.floor(mouseX), Math.floor(mouseY), cellSize, cellSize);
             }
         }
     }
@@ -247,6 +257,8 @@ class Canvas {
 canvas.setAttribute("width",getBoardWidth()*cellSize)
 canvas.setAttribute("height",getBoardHeight()*cellSize)
 canvas.oncontextmenu= () => false;
+
 window.requestAnimationFrame(() => Canvas.initialize());
 Listeners.initialize();
+
 });

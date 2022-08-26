@@ -9,8 +9,11 @@ typedef long int i32;
 
 static int turn = 0;
 static constexpr int cellSize = 30;
-static constexpr int canvasWidth = 1710;
-static constexpr int canvasHeight = 300;
+
+static constexpr int canvasWidth = 450;
+static constexpr int canvasHeight = 450;
+// static constexpr int canvasWidth = 1710;
+// static constexpr int canvasHeight = 300;
 // static constexpr int canvasWidth = 1200;
 // static constexpr int canvasHeight = 600;
 

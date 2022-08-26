@@ -4,19 +4,6 @@
     width: 100%;
     text-align: center;
 }
-.headline {
-    padding: 120px 0;
-}
-.headline > .container > h1 {
-    font-size: 130px;
-    background: #ffffff;
-    background: rgba(255, 255, 255, 0.9);
-}
-.headline > .container > h2 {
-    font-size: 77px;
-    background: #ffffff;
-    background: rgba(255, 255, 255, 0.9);
-}
 .emscripten { 
     padding-right: 0; 
     margin-left: auto; 
@@ -58,4 +45,7 @@ button#sim:not([enabled])::after{
 }
 button#step::after{
     content: 'Next Step'
+}
+button#speedup::after{
+    content: attr(level) "x"
 }
