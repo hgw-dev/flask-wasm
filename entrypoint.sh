@@ -1,2 +1,2 @@
 bash build.sh
-python3 view.py
+waitress-serve --port=5000 --call view:start_app
