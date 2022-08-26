@@ -245,9 +245,9 @@ class Canvas {
         }
     }
 
-    static colorActiveCell(x, y) {
-        const xCoord = getXCoordinate(activeX, activeY);
-        const yCoord = getYCoordinate(activeX, activeY);
+    static colorActiveCell(x, y, ctx) {
+        const xCoord = getXCoordinate(x, y);
+        const yCoord = getYCoordinate(x, y);
 
         ctx.strokeStyle = 'blue';
         ctx.shadowColor = 'blue';
@@ -299,7 +299,7 @@ class Canvas {
         }
 
         // do this last to get the highest z-index
-        colorActiveCell(activeX, activeY);
+        Canvas.colorActiveCell(activeX, activeY, ctx);
     }
 }
 
