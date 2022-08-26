@@ -110,6 +110,10 @@ const memory = wi.getExport('memory'),
 
 const cellSize = getCellSize();
 
+let heldDown = false,
+    op = undefined,
+    targetX, targetY;
+
 class Listeners {
     static setPosition(evt){
         const rect = canvas.getBoundingClientRect(),
@@ -125,13 +129,18 @@ class Listeners {
         cell.textContent = `(${Math.floor(mouseX/cellSize)}, ${Math.floor(mouseY/cellSize)})`
     }
     static rClick(x, y){
-        deleteCell(x, y);
+        if (op !== 'create'){
+            op = 'delete';
+            deleteCell(x, y);
+        }
     }
     static lClick(x, y){
         if (inBounds(x, y)){
-            if (!isCellAlive(x, y)){
+            if (!isCellAlive(x, y) && op !== 'delete'){
+                op = 'create';
                 createCell(x, y);
-            } else {
+            } else if (op !== 'create'){
+                op = 'delete';
                 deleteCell(x, y);
             }
         }
@@ -139,16 +148,27 @@ class Listeners {
     static clickCell(lIsDown, rIsDown, evt){
         Listeners.setPosition(evt);
 
-        if (lIsDown){
-            Listeners.lClick(Math.floor(mouseX/cellSize), Math.floor(mouseY/cellSize))
-        } else if (rIsDown) {
-            Listeners.rClick(Math.floor(mouseX/cellSize), Math.floor(mouseY/cellSize))
+        if (heldDown){
+            if (lIsDown){
+                Listeners.lClick(
+                    Math.floor(mouseX/cellSize), Math.floor(mouseY/cellSize)
+                )
+            } else if (rIsDown) {
+                Listeners.rClick(
+                    Math.floor(mouseX/cellSize), Math.floor(mouseY/cellSize)
+                )
+            }
         }
     }
     static mouse() {
         let lIsDown = false,
             rIsDown = false;
+
         window.addEventListener('mousedown', (evt) => {
+            targetX = Math.floor(mouseX/cellSize); 
+            targetY = Math.floor(mouseY/cellSize);
+            heldDown = true;
+
             if (evt.button === 2){
                 rIsDown = true;
             } else {
@@ -159,8 +179,19 @@ class Listeners {
         window.addEventListener('mouseup', (evt) => {
             rIsDown = false;
             lIsDown = false;
+            op = undefined;
         });
         window.addEventListener('mousemove', (evt) => {
+            let tmpTargetX = Math.floor(mouseX/cellSize); 
+            let tmpTargetY = Math.floor(mouseY/cellSize);
+            
+            if (tmpTargetX === targetX && tmpTargetY == targetY){
+                heldDown = false;
+            } else {
+                targetX = tmpTargetX;
+                targetY = tmpTargetY;
+                heldDown = true;
+            }
             Listeners.clickCell(lIsDown, rIsDown, evt)
         });
 
@@ -210,14 +241,32 @@ class Canvas {
             }
 
             Canvas.draw(canvas, ctx);
-
             ctx.restore();
         }
+    }
+
+    static colorActiveCell(x, y) {
+        const xCoord = getXCoordinate(activeX, activeY);
+        const yCoord = getYCoordinate(activeX, activeY);
+
+        ctx.strokeStyle = 'blue';
+        ctx.shadowColor = 'blue';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 5;
+
+        ctx.strokeRect(xCoord, yCoord, cellSize, cellSize);
     }
     
     static draw(canvas, ctx){
         ctx.fillStyle = 'rgb(240,240,240)'
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = 'black'
+        ctx.shadowColor = null;
+        ctx.shadowBlur = null;
+        ctx.lineWidth = .5;    
+        
+        let activeX, activeY;
 
         for (let y = 0; y < getBoardHeight(); y++){
             for (let x = 0; x < getBoardWidth(); x++) {
@@ -226,9 +275,19 @@ class Canvas {
                     createCell(x, y);
                     deleteCell(x, y);
                 }
-                
+
                 const xCoord = getXCoordinate(x, y);
                 const yCoord = getYCoordinate(x, y);
+
+                ctx.strokeRect(xCoord, yCoord, cellSize, cellSize);
+
+                if (
+                    Math.floor(mouseX/cellSize) == x && 
+                    Math.floor(mouseY/cellSize) == y
+                ){
+                    activeX = x;
+                    activeY = y;
+                }
 
                 if (isCellAlive(x, y)){    
                     // const color = getColor(x, y);
@@ -236,21 +295,11 @@ class Canvas {
                     ctx.fillStyle = 'gray'
                     ctx.fillRect(xCoord, yCoord, cellSize, cellSize);
                 }
-                
-                if (Math.floor(mouseX/cellSize) == x && Math.floor(mouseY/cellSize) == y){
-                    ctx.strokeStyle = 'blue';
-                    ctx.shadowColor = 'blue';
-                    ctx.shadowBlur = 10;
-                    ctx.lineWidth = 5;
-                } else {
-                    ctx.strokeStyle = 'black'
-                    ctx.shadowColor = null;
-                    ctx.shadowBlur = null;
-                    ctx.lineWidth = 1;    
-                }
-                ctx.strokeRect(xCoord, yCoord, cellSize, cellSize);
             }
         }
+
+        // do this last to get the highest z-index
+        colorActiveCell(activeX, activeY);
     }
 }
 
